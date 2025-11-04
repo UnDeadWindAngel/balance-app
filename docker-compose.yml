@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: balance-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=balance-app-db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Admin1993
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13
+    container_name: balance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: balance-app-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin1993
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nginx:
+    image: nginx:alpine
+    container_name: balance-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:
